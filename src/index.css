@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* mobile container */
+  --mobile-max-width: 390px;
+  --mobile-radius: 16px;
+  --mobile-bg: var(--background);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: #e5e7eb; /* abu-abu di desktop */
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ============================= */
+/* MOBILE APP LAYOUT */
+/* ============================= */
+
+.mobile-app {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+.mobile-container {
+  width: 100%;
+  max-width: var(--mobile-max-width);
+  min-height: 100dvh;
+  background: var(--mobile-bg);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Desktop styling */
+@media (min-width: 768px) {
+  .mobile-container {
+    margin: 24px 0;
+    border-radius: var(--mobile-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Optional safe area (iOS notch) */
+.safe-area {
+  padding-bottom: env(safe-area-inset-bottom);
+}
