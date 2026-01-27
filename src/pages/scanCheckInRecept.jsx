@@ -4,10 +4,12 @@ import toast from "react-hot-toast";
 import moment from "moment";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { Header, LoadingOverlay } from "@/components";
+import { useNavigate } from "react-router-dom";
 
 export default function CheckGates() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
 
   const handleScan = async (detectedCodes) => {
     if (!detectedCodes?.length || loading) return;
@@ -100,6 +102,9 @@ export default function CheckGates() {
           <div className="rounded-xl bg-green-50 border border-green-200 p-3">
             <p className="text-xs text-green-700">Status</p>
             <p className="font-semibold text-green-800">{results.message}</p>
+          </div>
+          <div onClick={() => navigate("/")} className="mt-5 flex items-center justify-center bg-[#041475] text-white p-3 rounded-xl">
+            Done
           </div>
         </div>
       )}
