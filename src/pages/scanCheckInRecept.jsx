@@ -81,13 +81,13 @@ export default function CheckGates() {
           {/* Booking Type */}
           <div className="rounded-xl bg-white p-3 shadow">
             <p className="text-xs text-gray-500">Tipe Booking</p>
-            <p className="font-semibold capitalize">{results.booking_type}</p>
+            <p className="font-semibold capitalize">{results.session_type}</p>
           </div>
 
           {/* Class Name */}
           <div className="rounded-xl bg-white p-3 shadow">
             <p className="text-xs text-gray-500">Class</p>
-            <p className="font-semibold">{results.class_name || "-"}</p>
+            <p className="font-semibold">{results.class_type || "-"}</p>
           </div>
 
           {/* Schedule Date */}

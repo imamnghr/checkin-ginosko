@@ -33,7 +33,7 @@ export default function Checkin() {
       setResults((prev) => [...prev, data]);
     } catch (e) {
       console.log(e);
-      toast.error(e.message || "failed to chek in");
+      toast.error(e.response.data.message || "failed to chek in");
     } finally {
       setLoading(false);
     }
