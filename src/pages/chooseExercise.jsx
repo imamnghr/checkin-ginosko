@@ -6,7 +6,6 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-// 🔹 Debounce hook
 function useDebounce(value, delay = 500) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -24,11 +23,9 @@ export default function ChooseExercise() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 hasil scan QR (ARRAY)
   const [stored, setStored] = useState([]);
   const navigate = useNavigate();
 
-  // 🔍 filters
   const [filters, setFilters] = useState({
     equipment: "",
     exercise_name: "",
@@ -36,7 +33,8 @@ export default function ChooseExercise() {
     benefit: "",
   });
 
-  // 🧠 ambil hasil scan QR
+  const [selectedExercises, setSelectedExercises] = useState([]);
+
   useEffect(() => {
     const saved = sessionStorage.getItem("checkinResults");
     if (!saved) {
@@ -45,13 +43,6 @@ export default function ChooseExercise() {
     }
     setStored(JSON.parse(saved));
   }, [navigate]);
-
-  // 🟦 modal state
-  const [selectedExercise, setSelectedExercise] = useState(null);
-  const [repeatCount, setRepeatCount] = useState("");
-
-  // 🔹 progress state
-  const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   const debouncedFilters = {
     equipment: useDebounce(filters.equipment),
@@ -63,13 +54,11 @@ export default function ChooseExercise() {
   const observerRef = useRef(null);
   const LIMIT = 10;
 
-  // 📡 Fetch exercise
   const getExercise = async (pageNumber = 1, reset = false) => {
     if (loading) return;
 
     try {
       setLoading(true);
-
       const response = await api.get("/exercises", {
         params: {
           page: pageNumber,
@@ -90,15 +79,13 @@ export default function ChooseExercise() {
     }
   };
 
-  // 🔄 reload saat filter berubah
   useEffect(() => {
     setPage(1);
     setHasMore(true);
-    setSelectedExercise(null);
+    setSelectedExercises([]);
     getExercise(1, true);
   }, [JSON.stringify(debouncedFilters)]);
 
-  // ♾️ infinite scroll
   useEffect(() => {
     if (!hasMore || loading) return;
 
@@ -116,80 +103,64 @@ export default function ChooseExercise() {
     getExercise(page);
   }, [page]);
 
-  // 🧠 handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFilters((p) => ({ ...p, [name]: value }));
   };
 
-  const openModal = (item) => {
-    setSelectedExercise(item);
-    setRepeatCount("");
+  const toggleExercise = (item) => {
+    setSelectedExercises((prev) => {
+      const exists = prev.find((e) => e.id === item.id);
+      if (exists) {
+        return prev.filter((e) => e.id !== item.id);
+      }
+      return [...prev, item];
+    });
   };
 
-  const closeModal = () => {
-    setSelectedExercise(null);
-    setRepeatCount("");
-  };
-
-  console.log(stored);
-  // 🚀 QUEUEING + PROGRESS
   const handleSubmit = async () => {
-    if (!repeatCount || Number(repeatCount) <= 0) {
-      toast.error("Masukkan jumlah yang valid");
+    if (!selectedExercises.length) {
+      toast.error("Select at least 1 exercise");
       return;
     }
 
     if (!stored.length) {
-      toast.error("Tidak ada data check-in");
+      toast.error("No check-in data");
       return;
     }
 
-    const processQueue = async () => {
-      setProgress({ current: 0, total: stored.length });
-
+    try {
       for (let i = 0; i < stored.length; i++) {
         const user = stored[i];
 
-        const payload = {
-          user_id: user.user_id, // 🔴 dari hasil scan QR
-          exercise_id: selectedExercise.id,
-          times_done: Number(repeatCount),
-        };
-
-        await api.post("/user-exercises", payload);
-
-        setProgress({
-          current: i + 1,
-          total: stored.length,
+        await api.post("/user-exercises", {
+          user_id: user.user_id,
+          exercise_ids: selectedExercises.map((e) => e.id),
         });
       }
-    };
 
-    try {
-      await toast.promise(processQueue(), {
-        loading: `Memproses ${progress.current}/${stored.length}`,
-        success: `Berhasil menyimpan ${stored.length} user 🎉`,
-        error: "Gagal memproses data",
-      });
-      await api.patch(`/bookings/${parseFloat(stored[0].booking_id)}/complete`);
+      await api.patch(
+        `/bookings/${parseFloat(stored[0].booking_id)}/complete`,
+      );
+
       sessionStorage.removeItem("checkinResults");
-      closeModal();
+      toast.success("Checkin Participant successfully")
       navigate("/home");
     } catch (err) {
       console.error(err);
+      toast.error("Failed to save exercises");
     }
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      {/* 🔍 FILTER */}
-      <div className="grid grid-cols-2  gap-2 mb-4">
+    <div className="p-4 max-w-3xl mx-auto bg-transparent">
+      {/* FILTER */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
         <select
           name="equipment"
           value={filters.equipment}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
         >
           <option value="">All Equipment</option>
           <option value="Reformer">Reformer</option>
@@ -203,7 +174,7 @@ export default function ChooseExercise() {
         <input
           name="exercise_name"
           placeholder="Exercise Name"
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           value={filters.exercise_name}
           onChange={handleChange}
         />
@@ -211,7 +182,7 @@ export default function ChooseExercise() {
         <input
           name="body_part"
           placeholder="Body Part"
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           value={filters.body_part}
           onChange={handleChange}
         />
@@ -219,69 +190,60 @@ export default function ChooseExercise() {
         <input
           name="benefit"
           placeholder="Benefit"
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           value={filters.benefit}
           onChange={handleChange}
         />
       </div>
 
-      {/* 📋 LIST */}
+      {/* LIST */}
       <div className="space-y-3">
         {data.map((item) => (
           <div
             key={item.id}
-            onClick={() => openModal(item)}
-            className="border rounded p-3 cursor-pointer hover:bg-gray-50"
+            onClick={() => toggleExercise(item)}
+            className={`
+              border rounded p-3 cursor-pointer
+              bg-white dark:bg-slate-900
+              hover:bg-gray-50 dark:hover:bg-slate-800
+              dark:border-slate-700
+              ${selectedExercises.some((e) => e.id === item.id)
+                ? "ring-2 ring-blue-500"
+                : ""
+              }
+            `}
           >
-            <h3 className="font-semibold">{item.exercise_name}</h3>
-            <p className="text-sm text-gray-600">Equipment: {item.equipment}</p>
-            <p className="text-sm text-gray-600">Body Part: {item.body_part}</p>
-            <p className="text-sm text-gray-600">Benefit: {item.benefit}</p>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+              {item.exercise_name}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Equipment: {item.equipment}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Body Part: {item.body_part}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Benefit: {item.benefit}
+            </p>
           </div>
         ))}
       </div>
 
       {hasMore && (
-        <div
-          ref={observerRef}
-          className="h-10 flex justify-center items-center"
-        >
+        <div ref={observerRef} className="h-10 flex justify-center items-center">
           {loading && <LoadingOverlay show />}
         </div>
       )}
 
-      {/* 🟦 MODAL */}
-      {selectedExercise && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-5 w-full max-w-sm">
-            <h4 className="font-semibold mb-2">
-              {selectedExercise.exercise_name}
-            </h4>
-
-            <input
-              type="number"
-              min={1}
-              placeholder="Times Done?"
-              value={repeatCount}
-              onChange={(e) => setRepeatCount(e.target.value)}
-              className="border p-2 rounded w-full mb-3"
-            />
-
-            <div className="flex gap-2">
-              <button
-                onClick={closeModal}
-                className="flex-1 border py-2 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="flex-1 bg-blue-600 text-white py-2 rounded"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+      {/* SUBMIT BUTTON */}
+      {selectedExercises.length > 0 && (
+        <div className="fixed bottom-4 left-0 right-0 px-4 max-w-sm mx-auto">
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg"
+          >
+            Submit ({selectedExercises.length} Exercises)
+          </button>
         </div>
       )}
     </div>

@@ -2,14 +2,11 @@ import Header from "@/components/Header";
 import { useAuthStore } from "@/store";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import React from 'react';
-
+import React from "react";
 
 export default function Page() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-
-  console.log(user);
 
   // =========================
   // MENU CONFIG (ROLE BASED)
@@ -33,21 +30,15 @@ export default function Page() {
     },
   ];
 
-  // 🔹 Filter menu berdasarkan role user
   const filteredMenus = menus.filter(
     (menu) => !menu.role || menu.role === user?.role
   );
 
-  // =========================
-  // HANDLERS
-  // =========================
   const handleMenuClick = (menu) => {
-    // 🔐 Extra guard (safety)
     if (menu.role && menu.role !== user?.role) {
       toast.error("Menu ini tidak bisa diakses");
       return;
     }
-
     navigate(menu.link);
   };
 
@@ -58,12 +49,12 @@ export default function Page() {
   };
 
   // =========================
-  // ICONS
+  // ICONS (DARK FRIENDLY)
   // =========================
   const icons = {
     checkin: (
       <svg
-        className="w-5 h-5 text-[#041475]"
+        className="w-5 h-5 text-[#041475] dark:text-blue-300"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
@@ -76,7 +67,7 @@ export default function Page() {
     ),
     gate: (
       <svg
-        className="w-5 h-5 text-[#041475]"
+        className="w-5 h-5 text-[#041475] dark:text-blue-300"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
@@ -88,7 +79,7 @@ export default function Page() {
     ),
     logout: (
       <svg
-        className="w-5 h-5 text-red-600"
+        className="w-5 h-5 text-red-600 dark:text-red-400"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
@@ -108,8 +99,8 @@ export default function Page() {
     <>
       <Header title="Home" />
 
-      <main className="px-4 pt-6 pb-10 bg-gray-50 min-h-[calc(100vh-56px)]">
-        <h2 className="text-lg font-bold text-[#041475] mb-4 tracking-wide">
+      <main className="px-4 pt-6 pb-10 bg-gray-50 dark:bg-slate-950 min-h-[calc(100vh-56px)]">
+        <h2 className="text-lg font-bold text-[#041475] dark:text-blue-300 mb-4 tracking-wide">
           MENUS
         </h2>
 
@@ -120,62 +111,62 @@ export default function Page() {
               onClick={() => handleMenuClick(menu)}
               className="
                 w-full
-                bg-white
+                bg-white dark:bg-slate-900
                 rounded-xl
-                shadow-sm
-                px-4
-                py-3
-                flex
-                items-center
-                gap-4
+                px-4 py-3
+                flex items-center gap-4
+                shadow-sm dark:shadow-none
                 transition
-                hover:shadow-md
+                hover:shadow-md dark:hover:bg-slate-800
                 active:scale-[0.98]
               "
             >
-              <div className="w-10 h-10 rounded-full bg-[#041475]/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-[#041475]/10 dark:bg-blue-400/10 flex items-center justify-center">
                 {icons[menu.icon]}
               </div>
 
               <div className="flex-1 text-left">
-                <p className="text-base font-semibold text-[#041475] leading-tight">
+                <p className="text-base font-semibold text-[#041475] dark:text-blue-200 leading-tight">
                   {menu.title}
                 </p>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                   {menu.subtitle}
                 </p>
               </div>
 
-              <div className="text-gray-400 text-lg">›</div>
+              <div className="text-gray-400 dark:text-gray-500 text-lg">
+                ›
+              </div>
             </button>
           ))}
 
-          {/* 🔴 LOGOUT */}
+          {/* LOGOUT */}
           <button
             onClick={handleLogout}
             className="
               mt-6
               w-full
-              bg-white
-              border border-red-200
+              bg-white dark:bg-slate-900
+              border border-red-200 dark:border-red-500/30
               rounded-xl
-              px-4
-              py-3
-              flex
-              items-center
-              gap-4
+              px-4 py-3
+              flex items-center gap-4
               transition
-              hover:bg-red-50
+              hover:bg-red-50 dark:hover:bg-red-500/10
               active:scale-[0.98]
             "
           >
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
               {icons.logout}
             </div>
 
             <div className="flex-1 text-left">
-              <p className="text-base font-semibold text-red-600">Logout</p>
-              <p className="text-sm text-red-400">Keluar dari akun ini</p>
+              <p className="text-base font-semibold text-red-600 dark:text-red-400">
+                Logout
+              </p>
+              <p className="text-sm text-red-400 dark:text-red-500/70">
+                Keluar dari akun ini
+              </p>
             </div>
           </button>
         </div>

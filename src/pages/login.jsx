@@ -16,7 +16,7 @@ export default function Login() {
 
     try {
       const res = await handleLogin({ phone, password });
-      if(res){
+      if (res) {
         toast.success("Login successful");
         navigate("/home");
       }
@@ -34,13 +34,12 @@ export default function Login() {
   };
 
   return (
-    <div className="px-4 flex justify-center items-center h-screen bg-gray-50">
+    <div className="px-4 flex justify-center items-center h-screen">
       <form
         onSubmit={login}
         className="
           w-full
           max-w-sm
-          bg-white
           rounded-2xl
           shadow-sm
           px-6
@@ -50,7 +49,12 @@ export default function Login() {
         "
       >
         {/* Logo */}
-        <img src="/logo.png" className="h-20 mx-auto mb-4" />
+        <img
+          src="/logo.png"
+          className="h-20 mx-auto mb-4 transition-all dark:invert"
+          alt="Logo"
+        />
+
 
         <h1 className="text-xl font-bold text-center mb-6 text-[#041475]">
           Login

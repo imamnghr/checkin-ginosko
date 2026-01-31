@@ -33,7 +33,7 @@ export default function Checkin() {
       setResults((prev) => [...prev, data]);
     } catch (e) {
       console.log(e);
-      toast.error(e.response.data.message || "failed to chek in");
+      toast.error(e.response?.data?.message || "failed to check in");
     } finally {
       setLoading(false);
     }
@@ -43,17 +43,18 @@ export default function Checkin() {
     if (!results.length) return;
 
     sessionStorage.setItem("checkinResults", JSON.stringify(results));
-
     navigate("/coach/choose-exercise");
   };
 
   return (
     <>
       <Header title="Coach Checkin" />
-      <div className="flex flex-col items-center gap-4 p-4">
+
+      <div className="flex flex-col items-center gap-4 p-4 bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
         <LoadingOverlay show={loading} />
 
-        <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-lg">
+        {/* QR Scanner */}
+        <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-lg bg-white dark:bg-gray-800">
           <Scanner
             onScan={handleScan}
             onError={(error) => console.error(error)}
@@ -69,8 +70,13 @@ export default function Checkin() {
         {/* List hasil scan */}
         <div className="w-full max-w-sm space-y-2">
           {results.map((item, i) => (
-            <div key={i} className="rounded-xl bg-white p-3 shadow">
-              <p className="text-xs text-gray-500">Nama</p>
+            <div
+              key={i}
+              className="rounded-xl p-3 shadow  dark:bg-gray-800"
+            >
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Nama
+              </p>
               <p className="font-semibold">{item.name}</p>
             </div>
           ))}
@@ -80,7 +86,12 @@ export default function Checkin() {
         <button
           disabled={!results.length}
           onClick={handleNext}
-          className="mt-4 w-full max-w-sm rounded-xl bg-[#041475] py-3 text-white disabled:opacity-50"
+          className="
+            mt-4 w-full max-w-sm rounded-xl py-3 text-white
+            bg-[#041475] hover:bg-[#061a9b]
+            dark:bg-blue-700 dark:hover:bg-blue-600
+            disabled:opacity-50
+          "
         >
           Next ({results.length})
         </button>
