@@ -18,7 +18,7 @@ export default function Page() {
       subtitle: "This is list menu for coach",
       link: "/coach",
       icon: "checkin",
-      role: "coach",
+      roles: ["coach", "superadmin"],
     },
     {
       id: 2,
@@ -26,21 +26,33 @@ export default function Page() {
       subtitle: "Verify gate access for customers",
       link: "/recepsionist",
       icon: "gate",
-      role: "resepsionis",
+      roles: ["resepsionis", "superadmin"],
     },
   ];
 
-  const filteredMenus = menus.filter(
-    (menu) => !menu.role || menu.role === user?.role
-  );
+
+  const filteredMenus = menus.filter((menu) => {
+    // superadmin lihat semua
+    if (user?.role === "superadmin") return true;
+
+    // role biasa
+    return menu.roles?.includes(user?.role);
+  });
+
 
   const handleMenuClick = (menu) => {
-    if (menu.role && menu.role !== user?.role) {
+    if (
+      user?.role !== "superadmin" &&
+      menu.roles &&
+      !menu.roles.includes(user?.role)
+    ) {
       toast.error("Menu ini tidak bisa diakses");
       return;
     }
+
     navigate(menu.link);
   };
+
 
   const handleLogout = () => {
     logout();

@@ -27,7 +27,7 @@ export const useAuthStore = create(
           const res = await api.post("/auth/login", body);
           const { data } = res.data;
 
-          const allowedRoles = ["coach", "resepsionis"];
+          const allowedRoles = ["coach", "resepsionis", "superadmin"];
           if (!allowedRoles.includes(data.user.role)) {
             throw ("You are not authorized");
           }

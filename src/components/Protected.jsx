@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/store";
 import { Navigate } from "react-router-dom";
 
-const ALLOWED_ROLES = ["coach", "resepsionis"];
+const ALLOWED_ROLES = ["coach", "resepsionis","superadmin"];
 
 export default function Protected({ children }) {
   const { token, user, hasHydrated, logout } = useAuthStore();

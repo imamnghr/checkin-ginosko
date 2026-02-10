@@ -87,7 +87,6 @@ export default function CoachCheckinsPage() {
     }
   };
 
-  console.log(image)
 
   const handleSave = async () => {
     if (!note) return;
@@ -100,22 +99,26 @@ export default function CoachCheckinsPage() {
       formData.append("checkin_id", selectedCheckin.checkin_id);
 
       if (image) {
+        console.log('masuk if image kah?')
         formData.append("image", image);
       }
 
       if (noteId) {
-        await api.put(`/coach-notes/${noteId}`, formData);
+        console.log('masuk if kah?')
+        // await api.put(`/coach-notes/${noteId}`, formData);
       } else {
-        await api.post("/coach-notes", formData);
+        console.log("masuk else")
+       const res = await api.post("/coach-notes", formData);
+       console.log(res)
       }
 
-      setData((prev) =>
-        prev.map((c) =>
-          c.checkin_id === selectedCheckin.checkin_id
-            ? { ...c, has_note: true }
-            : c
-        )
-      );
+      // setData((prev) =>
+      //   prev.map((c) =>
+      //     c.checkin_id === selectedCheckin.checkin_id
+      //       ? { ...c, has_note: true }
+      //       : c
+      //   )
+      // );
 
       setShowNoteModal(false);
     } finally {
