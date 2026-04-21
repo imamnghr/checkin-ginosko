@@ -82,7 +82,6 @@ export default function ChooseExercise() {
   useEffect(() => {
     setPage(1);
     setHasMore(true);
-    setSelectedExercises([]);
     getExercise(1, true);
   }, [JSON.stringify(debouncedFilters)]);
 
