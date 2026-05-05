@@ -51,6 +51,8 @@ export default function ChooseExercise() {
     benefit: useDebounce(filters.benefit),
   };
 
+  console.log(stored);
+
   const observerRef = useRef(null);
   const LIMIT = 10;
 
@@ -136,14 +138,12 @@ export default function ChooseExercise() {
           user_id: user.user_id,
           exercise_ids: selectedExercises.map((e) => e.id),
         });
+        await api.patch(`/bookings/${parseFloat(stored[i].booking_id)}/complete`);
       }
 
-      await api.patch(
-        `/bookings/${parseFloat(stored[0].booking_id)}/complete`,
-      );
 
       sessionStorage.removeItem("checkinResults");
-      toast.success("Checkin Participant successfully")
+      toast.success("Checkin Participant successfully");
       navigate("/home");
     } catch (err) {
       console.error(err);
@@ -206,9 +206,10 @@ export default function ChooseExercise() {
               bg-white dark:bg-slate-900
               hover:bg-gray-50 dark:hover:bg-slate-800
               dark:border-slate-700
-              ${selectedExercises.some((e) => e.id === item.id)
-                ? "ring-2 ring-blue-500"
-                : ""
+              ${
+                selectedExercises.some((e) => e.id === item.id)
+                  ? "ring-2 ring-blue-500"
+                  : ""
               }
             `}
           >
@@ -229,7 +230,10 @@ export default function ChooseExercise() {
       </div>
 
       {hasMore && (
-        <div ref={observerRef} className="h-10 flex justify-center items-center">
+        <div
+          ref={observerRef}
+          className="h-10 flex justify-center items-center"
+        >
           {loading && <LoadingOverlay show />}
         </div>
       )}
