@@ -51,8 +51,6 @@ export default function ChooseExercise() {
     benefit: useDebounce(filters.benefit),
   };
 
-  console.log(stored);
-
   const observerRef = useRef(null);
   const LIMIT = 10;
 
@@ -137,8 +135,9 @@ export default function ChooseExercise() {
         await api.post("/user-exercises", {
           user_id: user.user_id,
           exercise_ids: selectedExercises.map((e) => e.id),
+          booking_id: parseFloat(user.booking_id),  
         });
-        await api.patch(`/bookings/${parseFloat(stored[i].booking_id)}/complete`);
+        await api.patch(`/bookings/${parseFloat(user.booking_id)}/complete`);
       }
 
 
