@@ -13,6 +13,7 @@ export default function CoachCheckinsPage() {
   const [sessionType, setSessionType] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [session_type, setSession_type] = useState("private");
 
   // modal
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -28,7 +29,6 @@ export default function CoachCheckinsPage() {
   const loaderRef = useRef(null);
   const fileInputRef = useRef(null);
 
-
   const fetchData = async (reset = false) => {
     if (loading || (!hasNext && !reset)) return;
 
@@ -39,7 +39,7 @@ export default function CoachCheckinsPage() {
         page: reset ? 1 : page,
         limit: 10,
         class_type: classType || undefined,
-        session_type: "private",
+        session_type,
         start_date: startDate || undefined,
         end_date: endDate || undefined,
       },
@@ -66,7 +66,7 @@ export default function CoachCheckinsPage() {
     setPage(1);
     setHasNext(true);
     fetchData(true);
-  }, [classType, sessionType, startDate, endDate]);
+  }, [classType, sessionType, startDate, endDate, session_type]);
 
   const openNoteModal = async (item) => {
     setSelectedCheckin(item);
@@ -87,7 +87,6 @@ export default function CoachCheckinsPage() {
     }
   };
 
-
   const handleSave = async () => {
     if (!note) return;
 
@@ -99,17 +98,13 @@ export default function CoachCheckinsPage() {
       formData.append("checkin_id", selectedCheckin.checkin_id);
 
       if (image) {
-        console.log('masuk if image kah?')
         formData.append("image", image);
       }
 
       if (noteId) {
-        console.log('masuk if kah?')
         // await api.put(`/coach-notes/${noteId}`, formData);
       } else {
-        console.log("masuk else")
-       const res = await api.post("/coach-notes", formData);
-       console.log(res)
+        const res = await api.post("/coach-notes", formData);
       }
 
       // setData((prev) =>
@@ -158,6 +153,15 @@ export default function CoachCheckinsPage() {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           />
+
+          <select
+            className="h-10 border rounded-md px-3 text-sm dark:bg-gray-800"
+            value={session_type}
+            onChange={(e) => setSession_type(e.target.value)}
+          >
+            <option value="private">PRIVATE</option>
+            <option value="dap">DAP</option>
+          </select>
         </div>
 
         {/* LIST */}
@@ -176,10 +180,11 @@ export default function CoachCheckinsPage() {
 
               <button
                 onClick={() => openNoteModal(item)}
-                className={`text-xs px-3 py-1 rounded-full border ${item.has_note
+                className={`text-xs px-3 py-1 rounded-full border ${
+                  item.has_note
                     ? "border-green-400 text-green-600"
                     : "border-yellow-400 text-yellow-600"
-                  }`}
+                }`}
               >
                 {item.has_note ? "View Note" : "Add Note"}
               </button>
@@ -188,7 +193,10 @@ export default function CoachCheckinsPage() {
         </div>
 
         {hasNext && (
-          <div ref={loaderRef} className="h-10 flex justify-center items-center">
+          <div
+            ref={loaderRef}
+            className="h-10 flex justify-center items-center"
+          >
             {loading && <p className="text-sm text-gray-400">Loading...</p>}
           </div>
         )}
@@ -241,7 +249,6 @@ export default function CoachCheckinsPage() {
               className="hidden"
               onChange={(e) => setImage(e.target.files[0])}
             />
-
 
             <div className="flex justify-end gap-2 mt-4">
               <button
