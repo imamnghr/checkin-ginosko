@@ -129,24 +129,45 @@ export default function ChooseExercise() {
     }
 
     try {
-      for (let i = 0; i < stored.length; i++) {
-        const user = stored[i];
+      let anyBookingCompleted = false;
 
+      for (let i = 0; i < stored.length; i++) {
+        const participant = stored[i];
+
+        if (!participant.checkin_id) {
+          console.warn("Missing checkin_id for participant", participant);
+          continue;
+        }
+
+        // 1. Simpan exercise untuk peserta ini
         await api.post("/user-exercises", {
-          user_id: user.user_id,
+          user_id: participant.user_id,
           exercise_ids: selectedExercises.map((e) => e.id),
-          booking_id: parseFloat(user.booking_id),  
+          booking_id: parseFloat(participant.booking_id),
         });
-        await api.patch(`/bookings/${parseFloat(user.booking_id)}/complete`);
+
+        // 2. Tandai peserta ini selesai (bukan langsung /bookings/:id/complete)
+        const completeRes = await api.patch(
+          `/checkins/${participant.checkin_id}/complete`,
+        );
+
+        if (completeRes.data?.data?.booking_completed) {
+          anyBookingCompleted = true;
+        }
       }
 
-
       sessionStorage.removeItem("checkinResults");
-      toast.success("Checkin Participant successfully");
+
+      toast.success(
+        anyBookingCompleted
+          ? "Semua peserta selesai, booking completed"
+          : "Checkin peserta berhasil disimpan",
+      );
+
       navigate("/home");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to save exercises");
+      toast.error(err?.response?.data?.message || "Failed to save exercises");
     }
   };
 

@@ -102,9 +102,10 @@ export default function CoachCheckinsPage() {
       }
 
       if (noteId) {
-        // await api.put(`/coach-notes/${noteId}`, formData);
+        await api.put(`/coach-notes/${noteId}`, formData);
       } else {
         const res = await api.post("/coach-notes", formData);
+        await fetchData(true);
       }
 
       // setData((prev) =>
