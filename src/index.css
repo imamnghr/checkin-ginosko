@@ -3,7 +3,6 @@
 :root {
   /* Light mode */
   --background: #ffffff;
-  --foreground: #171717;
 
   --surface: #ffffff;
   --surface-muted: #f3f4f6;
@@ -43,10 +42,6 @@
     --mobile-bg: var(--surface);
   }
 
-  body {
-    background: #020617;
-    /* desktop dark background */
-  }
 }
 
 /* ============================= */
