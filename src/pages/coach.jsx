@@ -25,6 +25,13 @@ export default function Coach() {
       link: "/coach/list-checkin",
       icon: "gate",
     },
+     {
+      id: 3,
+      title: "List Schedule",
+      subtitle: "This is list Schedule for coach",
+      link: "/coach/schedule",
+      icon: "gate",
+    },
   ];
 
   const handleMenuClick = (menu) => {

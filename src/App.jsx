@@ -9,6 +9,7 @@ import {
   Recepsionist,
   ScanCheckInRecept,
   ClaimReward,
+  CoachSchedule,
 } from "@pages";
 import Protected from "@components/Protected";
 
@@ -42,6 +43,14 @@ function App() {
           element={
             <Protected>
               <ScanCheckin />
+            </Protected>
+          }
+        />
+        <Route
+          path="/coach/schedule"
+          element={
+            <Protected>
+              <CoachSchedule />
             </Protected>
           }
         />
