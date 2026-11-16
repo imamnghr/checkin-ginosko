@@ -16,8 +16,6 @@ const RANGE_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: "confirmed", label: "Confirmed" },
   { value: "completed", label: "Completed" },
-  { value: "pending", label: "Pending" },
-  { value: "", label: "All statuses" },
 ];
 
 const STATUS_STYLES = {
@@ -67,23 +65,41 @@ const formatDateHeading = (dateKey) => {
 
 const formatTime = (time) => (time ? String(time).slice(0, 5) : "-");
 
-// The backend already sorts nearest-first; here we only group by date.
-const groupByDate = (bookings) => {
-  const groups = [];
-  const indexByDate = new Map();
+const sumPax = (bookings) =>
+  bookings.reduce((total, booking) => total + (Number(booking.pax) || 0), 0);
+
+// The backend already sorts nearest-first. Here we group by date, then merge
+// every booking that belongs to the same class (class_id) into one entry.
+const groupByDateAndClass = (bookings) => {
+  const days = [];
+  const dayIndex = new Map();
 
   bookings.forEach((booking) => {
     const dateKey = toDateKey(booking.class.class_schedule);
 
-    if (!indexByDate.has(dateKey)) {
-      indexByDate.set(dateKey, groups.length);
-      groups.push({ dateKey, items: [] });
+    if (!dayIndex.has(dateKey)) {
+      dayIndex.set(dateKey, days.length);
+      days.push({ dateKey, classes: [], classIndex: new Map() });
     }
 
-    groups[indexByDate.get(dateKey)].items.push(booking);
+    const day = days[dayIndex.get(dateKey)];
+    const classKey = booking.class_id ?? `booking-${booking.id}`;
+
+    if (!day.classIndex.has(classKey)) {
+      day.classIndex.set(classKey, day.classes.length);
+      day.classes.push({
+        classKey,
+        info: booking.class,
+        studioName: booking.studio_name,
+        status: booking.status,
+        bookings: [],
+      });
+    }
+
+    day.classes[day.classIndex.get(classKey)].bookings.push(booking);
   });
 
-  return groups;
+  return days;
 };
 
 /* ---------------- small components ---------------- */
@@ -96,14 +112,13 @@ function FilterChips({ options, value, onChange }) {
 
         return (
           <button
-            key={option.label}
+            key={option.value}
             onClick={() => onChange(option.value)}
             className={`
               shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition
-              ${
-                active
-                  ? "bg-[#041475] text-white dark:bg-blue-700"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              ${active
+                ? "bg-[#041475] text-white dark:bg-blue-700"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               }
             `}
           >
@@ -118,68 +133,73 @@ function FilterChips({ options, value, onChange }) {
 function StatusBadge({ status }) {
   return (
     <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        STATUS_STYLES[status] || STATUS_STYLES.expired
-      }`}
+      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[status] || STATUS_STYLES.expired
+        }`}
     >
       {STATUS_LABELS[status] || status}
     </span>
   );
 }
 
-function ScheduleCard({ booking }) {
-  const { class: cls, user, guests, session_type, type_booking, pax, status } =
-    booking;
+function MemberRow({ booking }) {
+  const { user, guests, session_type, type_booking, pax } = booking;
+
+  const details = [session_type, type_booking, pax ? `${pax} pax` : null]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <li className="py-2 first:pt-0 last:pb-0">
+      <p className="font-semibold">{user?.name || "-"}</p>
+
+      {details && (
+        <p className="text-xs capitalize text-gray-500 dark:text-gray-400">
+          {details}
+        </p>
+      )}
+
+      {guests?.length > 0 && (
+        <ul className="mt-1 space-y-0.5 text-sm text-gray-600 dark:text-gray-300">
+          {guests.map((guest, i) => (
+            <li key={`${guest.name}-${i}`}>+ {guest.name}</li>
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+function ClassCard({ classGroup }) {
+  const { info, studioName, status, bookings } = classGroup;
+  const totalPax = sumPax(bookings);
 
   return (
     <div className="rounded-xl bg-white p-4 shadow dark:bg-gray-800">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-lg font-semibold">
-            {formatTime(cls.class_start)} – {formatTime(cls.class_end)}
+            {formatTime(info.class_start)} – {formatTime(info.class_end)}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {cls.class_type || "-"}
-            {booking.studio_name ? ` · ${booking.studio_name}` : ""}
+            {info.class_type || "-"}
+            {studioName ? ` · ${studioName}` : ""}
           </p>
         </div>
         <StatusBadge status={status} />
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <span className="rounded-md bg-gray-100 px-2 py-1 capitalize dark:bg-gray-700">
-          {session_type}
-        </span>
-        <span className="rounded-md bg-gray-100 px-2 py-1 capitalize dark:bg-gray-700">
-          {type_booking}
-        </span>
         <span className="rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-          {pax} pax
+          {bookings.length} {bookings.length === 1 ? "participant" : "participants"}
         </span>
+       
       </div>
 
-      <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400">Member</p>
-        <p className="font-semibold">{user?.name || "-"}</p>
-        {user?.phone && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {user.phone}
-          </p>
-        )}
-
-        {guests?.length > 0 && (
-          <div className="mt-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Guest ({guests.length})
-            </p>
-            <ul className="text-sm">
-              {guests.map((guest) => (
-                <li key={`${guest.phone}-${guest.name}`}>{guest.name}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      <ul className="mt-3 divide-y divide-gray-200 border-t border-gray-200 pt-3 dark:divide-gray-700 dark:border-gray-700">
+        {bookings.map((booking) => (
+          <MemberRow key={booking.id} booking={booking} />
+        ))}
+      </ul>
     </div>
   );
 }
@@ -211,9 +231,8 @@ export default function CoachSchedule() {
       setLoading(true);
 
       try {
-        const params = { coach_id: coachId, page, limit: PAGE_LIMIT };
+        const params = { coach_id: coachId, page, limit: PAGE_LIMIT, status };
         if (range === "upcoming") params.start_date = todayKey();
-        if (status) params.status = status;
 
         const res = await api.get("/bookings", { params });
         const { data, meta: nextMeta } = res.data.data;
@@ -235,7 +254,7 @@ export default function CoachSchedule() {
     fetchBookings(1);
   }, [fetchBookings]);
 
-  const groups = useMemo(() => groupByDate(bookings), [bookings]);
+  const days = useMemo(() => groupByDateAndClass(bookings), [bookings]);
   const hasMore = meta.page < meta.totalPages;
 
   return (
@@ -262,16 +281,16 @@ export default function CoachSchedule() {
           </p>
         </div>
 
-        {/* List per tanggal */}
+        {/* List grouped by date, then by class */}
         <div className="w-full max-w-sm space-y-6">
-          {groups.map((group) => (
-            <section key={group.dateKey} className="space-y-2">
+          {days.map((day) => (
+            <section key={day.dateKey} className="space-y-2">
               <h2 className="sticky top-0 bg-white py-1 text-sm font-semibold text-gray-600 dark:bg-gray-900 dark:text-gray-300">
-                {formatDateHeading(group.dateKey)}
+                {formatDateHeading(day.dateKey)}
               </h2>
 
-              {group.items.map((booking) => (
-                <ScheduleCard key={booking.id} booking={booking} />
+              {day.classes.map((classGroup) => (
+                <ClassCard key={classGroup.classKey} classGroup={classGroup} />
               ))}
             </section>
           ))}
