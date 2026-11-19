@@ -15,6 +15,7 @@ export default function Checkin() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
+
   // Ref = sinkron, tidak kena masalah stale state
   const isProcessingRef = useRef(false);
   const processedTokensRef = useRef(new Set()); // token sukses
@@ -40,6 +41,8 @@ export default function Checkin() {
 
     try {
       const res = await api.post("/checkins/verify", { token });
+
+      console.log(res)
 
       processedTokensRef.current.add(token);
       setResults((prev) => [...prev, res.data.data]);
@@ -74,20 +77,45 @@ export default function Checkin() {
         <LoadingOverlay show={loading} />
 
         <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-lg bg-white dark:bg-gray-800">
+
           <Scanner
             onScan={handleScan}
-            scanDelay={500} // batasi frekuensi decode (default sangat cepat)
+            scanDelay={500}
             onError={(error) => {
-              console.error(error?.name, "|", error?.message);
-              if (error?.name === "NotAllowedError") {
-                toast.error("Izin kamera ditolak. Aktifkan di pengaturan browser.");
-              } else if (error?.name === "NotFoundError") {
-                toast.error("Kamera tidak ditemukan di perangkat ini.");
+              console.error("[QR SCANNER ERROR]", {
+                kind: error?.kind,
+                message: error?.message,
+                cause: error?.cause,
+                error,
+              });
+
+              switch (error?.kind) {
+                case "permission-denied":
+                  toast.error("Izin kamera ditolak. Aktifkan izin kamera browser.");
+                  break;
+                case "no-camera":
+                  toast.error("Kamera tidak ditemukan.");
+                  break;
+                case "in-use":
+                  toast.error("Kamera sedang digunakan aplikasi lain.");
+                  break;
+                case "overconstrained":
+                  toast.error("Konfigurasi kamera tidak didukung perangkat.");
+                  break;
+                case "insecure-context":
+                  toast.error("Kamera membutuhkan koneksi HTTPS.");
+                  break;
+                default:
+                  toast.error("Terjadi kesalahan saat mengakses kamera.");
               }
             }}
-            constraints={SCANNER_CONSTRAINTS}
-            components={{ audio: true, torch: true, finder: true }}
+            components={{
+              audio: true,
+              torch: true,
+              finder: true,
+            }}
           />
+
         </div>
 
         <div className="w-full max-w-sm space-y-2">

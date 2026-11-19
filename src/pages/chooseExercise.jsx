@@ -117,6 +117,7 @@ export default function ChooseExercise() {
     });
   };
 
+
   const handleSubmit = async () => {
     if (!selectedExercises.length) {
       toast.error("Select at least 1 exercise");
@@ -133,6 +134,7 @@ export default function ChooseExercise() {
 
       for (let i = 0; i < stored.length; i++) {
         const participant = stored[i];
+        console.log(participant)
 
         if (!participant.checkin_id) {
           console.warn("Missing checkin_id for participant", participant);
@@ -151,6 +153,9 @@ export default function ChooseExercise() {
           `/checkins/${participant.checkin_id}/complete`,
         );
 
+        console.log(completeRes)
+
+
         if (completeRes.data?.data?.booking_completed) {
           anyBookingCompleted = true;
         }
@@ -163,6 +168,7 @@ export default function ChooseExercise() {
           ? "Semua peserta selesai, booking completed"
           : "Checkin peserta berhasil disimpan",
       );
+
 
       navigate("/home");
     } catch (err) {
@@ -226,10 +232,9 @@ export default function ChooseExercise() {
               bg-white dark:bg-slate-900
               hover:bg-gray-50 dark:hover:bg-slate-800
               dark:border-slate-700
-              ${
-                selectedExercises.some((e) => e.id === item.id)
-                  ? "ring-2 ring-blue-500"
-                  : ""
+              ${selectedExercises.some((e) => e.id === item.id)
+                ? "ring-2 ring-blue-500"
+                : ""
               }
             `}
           >
